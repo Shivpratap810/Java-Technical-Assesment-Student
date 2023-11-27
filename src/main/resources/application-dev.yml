@@ -3,6 +3,10 @@ spring:
     url: jdbc:mysql://localhost:3306/jta
     username: root
     password: root
+  security:
+    jwt:
+      secret: shivpratapsinghchouhansecretkeyshivpratapsinghchouhansecretkeyshivpratapsinghchouhansecretkey
+      expiration: 86400000  # Token expiration time in milliseconds (e.g., 1 day)
 
 server:
   port: 8081

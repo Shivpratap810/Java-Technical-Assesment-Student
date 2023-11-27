@@ -3,7 +3,6 @@ package com.test.shiv.jta.entity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Getter
 @Setter

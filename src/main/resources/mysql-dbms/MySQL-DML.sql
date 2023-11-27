@@ -23,3 +23,17 @@ VALUES
     (1005, 4, 101),
     (1006, 4, 102),
     (1007, 4, 103);
+
+
+-- Inserting roles
+INSERT INTO roles (role_name) VALUES ('USER');
+INSERT INTO roles (role_name) VALUES ('ADMIN');
+
+-- Inserting users
+INSERT INTO users (username, password) VALUES ('user1', 'password');
+INSERT INTO users (username, password) VALUES ('admin1', 'password');
+
+-- Inserting user_roles (assigning roles to users)
+INSERT INTO user_roles (user_id, role_id) VALUES (1, 1); -- user1 has ROLE_USER
+INSERT INTO user_roles (user_id, role_id) VALUES (2, 1); -- admin1 has ROLE_USER
+INSERT INTO user_roles (user_id, role_id) VALUES (2, 2); -- admin1 has ROLE_ADMIN
