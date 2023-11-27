@@ -4,16 +4,16 @@ import com.test.shiv.jta.entity.Course;
 import com.test.shiv.jta.entity.Enrollment;
 import com.test.shiv.jta.entity.Student;
 import com.test.shiv.jta.entity.StudentWithCoursesDTO;
+import com.test.shiv.jta.exception.BadRequestException;
+import com.test.shiv.jta.exception.ResourceNotFoundException;
 import com.test.shiv.jta.repository.CourseRepository;
 import com.test.shiv.jta.repository.EnrollmentRepository;
 import com.test.shiv.jta.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,59 +53,56 @@ public class StudentService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<Student> getStudentById(Long studentId) {
-        return studentRepository.findById(studentId);
+    public Student getStudentById(Long studentId) {
+        return studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Entity not found with id: " + studentId));
     }
 
     public Student addStudent(Student student) {
+        if (student == null || student.getFullName().isEmpty() || student.getTelephoneNumber().isEmpty() || student.getEmailAddress().isEmpty()) {
+            throw new BadRequestException("Invalid request");
+        }
         return studentRepository.save(student);
     }
 
     public Student updateStudent(Long studentId, Student updatedStudent) {
-        Optional<Student> existingStudent = studentRepository.findById(studentId);
-        if (existingStudent.isPresent()) {
-            Student student = existingStudent.get();
-            student.setFullName(updatedStudent.getFullName());
-            student.setEmailAddress(updatedStudent.getEmailAddress());
-            student.setTelephoneNumber(updatedStudent.getTelephoneNumber());
-            student.setAddress(updatedStudent.getAddress());
-            return studentRepository.save(student);
+        Student existingStudent = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Entity not found with id: " + studentId));
+        if (updatedStudent == null || updatedStudent.getFullName().isEmpty() || updatedStudent.getTelephoneNumber().isEmpty() || updatedStudent.getEmailAddress().isEmpty()) {
+            throw new BadRequestException("Invalid request");
         } else {
-            // Handle student not found
-            return null;
+            existingStudent.setFullName(updatedStudent.getFullName());
+            existingStudent.setEmailAddress(updatedStudent.getEmailAddress());
+            existingStudent.setTelephoneNumber(updatedStudent.getTelephoneNumber());
+            existingStudent.setAddress(updatedStudent.getAddress());
+            return studentRepository.save(existingStudent);
         }
     }
 
     public void deleteStudent(Long studentId) {
-        Optional<Student> existingStudent = studentRepository.findById(studentId);
-        if(existingStudent.isPresent()) {
-
-            List<Enrollment> existingEnrollments = enrollmentRepository.findByStudent(existingStudent.get());
-            enrollmentRepository.deleteAll(existingEnrollments);
-            studentRepository.deleteById(studentId);
-        } else {
-            System.out.println("Student Not Present");
-        }
+        Student existingStudent = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Entity not found with id: " + studentId));
+        List<Enrollment> existingEnrollments = enrollmentRepository.findByStudent(existingStudent);
+        enrollmentRepository.deleteAll(existingEnrollments);
+        studentRepository.deleteById(studentId);
     }
 
     public void assignStudentWithCourses(Long studentId, List<Long> courseIds) {
-        Optional<Student> student = studentRepository.findById(studentId);
+        Student existingStudent = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Entity not found with id: " + studentId));
+
         List<Course> courses = courseRepository.findAllById(courseIds);
 
-        if (student.isPresent() && !courses.isEmpty()) {
+        if (!courses.isEmpty()) {
             for (Course course : courses)
-                enrollmentService.allocateStudentToCourse(student.get(), course);
+                enrollmentService.allocateStudentToCourse(existingStudent, course);
         }
     }
 
     public void updatedCoursesByStudentId(Long studentId, List<Long> courseIds) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found with ID: " + studentId));
-
-        // Fetch the course entities from the database
         List<Course> courses = courseRepository.findAllById(courseIds);
-
-        // Update the courses for the student
         updateStudentCourses(student, courses);
     }
 

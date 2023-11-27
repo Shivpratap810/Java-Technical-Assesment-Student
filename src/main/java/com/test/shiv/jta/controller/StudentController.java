@@ -1,6 +1,5 @@
 package com.test.shiv.jta.controller;
 
-import com.test.shiv.jta.entity.Course;
 import com.test.shiv.jta.entity.Student;
 import com.test.shiv.jta.entity.StudentWithCoursesDTO;
 import com.test.shiv.jta.service.StudentService;
@@ -8,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -28,7 +26,7 @@ public class StudentController {
     }
 
     @GetMapping("/students/{studentId}")
-    public Optional<Student> getStudentById(@PathVariable Long studentId) {
+    public Student getStudentById(@PathVariable Long studentId) {
         return studentService.getStudentById(studentId);
     }
 
